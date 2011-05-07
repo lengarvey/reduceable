@@ -9,6 +9,7 @@ Usage
 -----
 
 See example.rb
+
 ```ruby
 # add some data
 t = Test.new
