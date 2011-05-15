@@ -30,6 +30,8 @@ Model.sum_of(:weight, :wrester_type, query = {})
 
 Coming Soon
 ----------
++ reducable gem
++ mongoid support
 + Sum by composite index
 + Averages
 + Unit Tests :(
