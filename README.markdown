@@ -22,7 +22,7 @@ that you write your own map and reduce functions.
 Here are some use cases
 
 ```ruby
-# Count how many models there are that have the item 'tag' in the tag key
+# Count how many times each tag is used
 Model.count_by(:tag, query = {})
 # Sum all the weights of the different types of wresters 
 Model.sum_of(:weight, :wrester_type, query = {})
@@ -30,9 +30,9 @@ Model.sum_of(:weight, :wrester_type, query = {})
 
 Coming Soon
 ----------
-Sum by composite index
-Averages
-Unit Tests :(
++ Sum by composite index
++ Averages
++ Unit Tests :(
 
 Usage
 -----
