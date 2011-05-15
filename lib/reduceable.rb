@@ -12,28 +12,31 @@ class MrStatus
   key :base_class, String 
   key :status, Boolean # true = dirty, clean = false
   
-  timestamps!
 end
 
 module Reduceable
   extend ActiveSupport::Concern
 
+  included do
+    after_save :mr_dirty!
+  end
+
   module ClassMethods
-   
-
-    class << self; attr_accessor :date_key end
-    class << self; attr_accessor :properties_key end
-
-    def reduce(date=:date, properties=:properties)
-      class_eval { after_save :mr_dirty! }
-      @date_key = date
-      @properties_key = properties
+    def sum_of(property, index, query={})
+      collection = mr_collection_name("sum_of_#{property}_by_#{index}", query) 
+      map = sum_map(property, index)
+      reduce = sum_reduce
+      return build(collection, map, reduce, query).find
     end
-    def per_date_map
-      @date_key = "date" unless @date_key
-      "function(){emit(this.#{@date_key}, 1);}"
+    def sum_map(property, index)
+      index = index.to_s if index.is_a? Symbol
+      if self.keys[index].type == Array
+        "function(){var amount = this.#{property};this.#{index}.forEach(function(value){emit(value, amount);});}"
+      else
+        "function(){emit(this.#{index}, this.#{property});}"
+      end
     end
-    def per_date_reduce
+    def sum_reduce 
       <<-REDUCE
         function(key, values) {
           var total = 0;
@@ -44,35 +47,65 @@ module Reduceable
         }
       REDUCE
     end
+
+    def count_by(index, query={})
+      collection = mr_collection_name("count_by_#{index}", query) 
+      map = count_map(index)
+      reduce = count_reduce
+      
+      return build(collection, map, reduce, query).find
+    end
+    def count_map(key)
+      # Not sure how to handle hashes yet
+      key = key.to_s if key.is_a? Symbol
+      if self.keys[key].type == Array
+        "function(){this.#{key}.forEach(function(value){emit(value, 1);});}"
+      else
+        "function(){emit(this.#{key}, 1);}"
+      end
+    end
+    def count_reduce
+      <<-REDUCE
+        function(key, values) {
+          var total = 0;
+          for (var i=0; i<values.length; i++){
+            total += values[i];
+          }
+          return total;
+        }
+      REDUCE
+    end
+
+    def mr_collection_name(action, query = {})
+      # we need a unique collection name based off the query
+      # this introduces a fun bug where if your query params are in a random order
+      # you won't get the performance increase of reusing map/reduce collections
+      # TODO: come up with a better way of getting the collection name
+      name = (self.to_s + "#{action}_mr_" + Base64.urlsafe_encode64(query.to_s)).gsub('=','_')
+      return name
+    end
+
+    def build(collection, map, reduce, query = {})
+      if requires_mr_update collection
+        mr_status = MrStatus.new
+        mr_status.collection_name = collection
+        mr_status.status = false
+        mr_status.base_class = self.to_s
+        mr_status.save
+        mr_status = mr_status.reload
+        opts = {:out => {:replace => collection}, :query => query}
+        self.collection.map_reduce(map, reduce, opts)
+      else
+        self.database[collection]
+      end
+    end
+
     # Does this particular map reduce require an update?
     def requires_mr_update(collection)
       status_list = MrStatus.where(:collection_name => collection).all
       return true if status_list.count == 0
       status_list.each do |status|
         return status.status
-      end
-    end
-    def per_date_collection_name(query = {})
-      # we need a unique collection name based off the query
-      # this introduces a fun bug where if your query params are in a random order
-      # you won't get the performance increase of reusing map/reduce collections
-      self.to_s + "_mr_" + Base64.urlsafe_encode64(query.to_s)
-    end
-    def per_date(query = {})
-      build_per_date(query).find
-    end
-    def build_per_date(query = {})
-      collection_name = per_date_collection_name(query)
-      if requires_mr_update collection_name
-        mr_status = MrStatus.new
-        mr_status.collection_name = collection_name
-        mr_status.status = false
-        mr_status.base_class = self.to_s
-        #mr_status.save
-        opts = {:out => {:replace => collection_name}, :query => query}
-        self.collection.map_reduce(per_date_map, per_date_reduce, opts)
-      else
-        self.database[collection_name]
       end
     end
   end
