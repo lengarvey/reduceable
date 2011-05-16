@@ -81,7 +81,7 @@ module Reduceable
       # this introduces a fun bug where if your query params are in a random order
       # you won't get the performance increase of reusing map/reduce collections
       # TODO: come up with a better way of getting the collection name
-      name = (self.to_s + "#{action}_mr_" + Base64.urlsafe_encode64(query.to_s)).gsub('=','_')
+      name = (self.to_s.downcase + "#{action}_mr_" + Base64.urlsafe_encode64(query.to_s)).gsub('=','_').gsub(':','_')
       return name
     end
 

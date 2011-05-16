@@ -30,14 +30,46 @@ Model.sum_of(:weight, :wrester_type, query = {})
 
 Coming Soon
 ----------
-+ reducable gem
 + mongoid support
 + Sum by composite index
 + Averages
-+ Unit Tests :(
++ More Unit Tests :(
+
+Installation
+------------
+```
+gem install reduceable
+# or
+sudo gem install reduceable
+```
 
 Usage
 -----
+```ruby
+require 'mongo_mapper'
+require 'reduceable'
+
+MongoMapper.database = 'my_database_name'
+
+class BlogPost
+  include MongoMapper::Document
+  include Reduceable
+
+  key :article_body, String
+  key :categories, Array
+  key :time_posted, Time
+  key :article_length, Integer
+end
+
+# Insert some data
+
+BlogPost.count_by(:categories).to_a.each do |x| 
+  puts "You have posted #{x['value']} posts from catefory #{x['_id']}"
+end
+BlogPost.sum_of(:article_length, :categories).to_a.each do |x|
+  puts "You have written #{x['value']} characters in category #{x['_id']}"
+end
+```
 
 See example.rb
 
