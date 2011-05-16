@@ -92,7 +92,6 @@ module Reduceable
         mr_status.status = false
         mr_status.base_class = self.to_s
         mr_status.save
-        mr_status = mr_status.reload
         opts = {:out => {:replace => collection}, :query => query}
         self.collection.map_reduce(map, reduce, opts)
       else

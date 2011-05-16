@@ -1,5 +1,5 @@
 require 'mongo_mapper'
-require './lib/reduceable'
+require 'reduceable'
 
 MongoMapper.database = 'mr_test'
 
