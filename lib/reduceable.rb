@@ -1,6 +1,6 @@
 require 'active_support'
 require 'mongo_mapper'
-require 'base64'
+require 'uuidtools'
 
 class MrStatus
   include MongoMapper::Document
@@ -81,7 +81,9 @@ module Reduceable
       # this introduces a fun bug where if your query params are in a random order
       # you won't get the performance increase of reusing map/reduce collections
       # TODO: come up with a better way of getting the collection name
-      name = (self.to_s.downcase + "#{action}_mr_" + Base64.urlsafe_encode64(query.to_s)).gsub('=','_').gsub(':','_')
+      name_encoded = UUIDTools::UUID.md5_create(UUIDTools::UUID_DNS_NAMESPACE, action + query.to_s).to_s
+      name = (self.to_s.downcase + name_encoded)
+      puts "Name: #{name}"
       return name
     end
 
