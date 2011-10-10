@@ -47,6 +47,32 @@ module Reduceable
         }
       REDUCE
     end
+    
+    def average_of(property, index, query={})
+      collection = mr_collection_name("average_of_#{property}_by_#{index}", query) 
+      map = average_map(property, index)
+      reduce = average_reduce
+      return build(collection, map, reduce, query).find
+    end
+    def average_map(property, index)
+      index = index.to_s if index.is_a? Symbol
+      if self.keys[index].type == Array
+        "function(){var amount = this.#{property};this.#{index}.forEach(function(value){emit(value, amount);});}"
+      else
+        "function(){emit(this.#{index}, this.#{property});}"
+      end
+    end
+    def average_reduce
+      <<-REDUCE
+        function(key, values) {
+          var total = 0;
+          for (var i=0; i<values.length; i++){
+            total += values[i];
+          }
+          return (total / values.length);
+        }
+      REDUCE
+    end
 
     def count_by(index, query={})
       collection = mr_collection_name("count_by_#{index}", query) 

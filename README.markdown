@@ -24,15 +24,16 @@ Here are some use cases
 ```ruby
 # Count how many times each tag is used
 Model.count_by(:tag, query = {})
-# Sum all the weights of the different types of wresters 
-Model.sum_of(:weight, :wrester_type, query = {})
+# Sum all the weights of the different types of wrestlers 
+Model.sum_of(:weight, :wrestler_type, query = {})
+# Find Average Weight of the different types of wrestlers
+Model.average_of(:weight, :wrestler_type, query = {})
 ```
 
 Coming Soon
 ----------
 + mongoid support
 + Sum by composite index
-+ Averages
 + More Unit Tests :(
 
 Installation
@@ -69,6 +70,9 @@ end
 BlogPost.sum_of(:article_length, :categories).to_a.each do |x|
   puts "You have written #{x['value']} characters in category #{x['_id']}"
 end
+BlogPost.average_of(:article_length, :categories).to_a.each do |x|
+  puts "An article in category #{x['_id']} has an average of #{x['value']} characters"
+end
 ```
 
 See example.rb
@@ -87,8 +91,16 @@ Test.count_by(:tags).to_a
 # Sum up the sale_amounts per tag
 Test.sum_of(:sale_amount, :tags).to_a
 
+# Find the average sale_amounts per tag
+Test.average_of(:sale_amount, :tags).to_a
+
 # Sum up the sale_amounts per tag where tags contains 'book'
 Test.sum_of(:sale_amount, :tags, {:tags => 'book'}).to_a
+# you can optionally pass in a mongo query that limits the initial dataset being
+# fed to the map function.
+
+# Find the average of sale_amounts per tag where tags contains 'book'
+Test.average_of(:sale_amount, :tags, {:tags => 'book'}).to_a
 # you can optionally pass in a mongo query that limits the initial dataset being
 # fed to the map function.
 ```
