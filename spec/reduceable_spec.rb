@@ -38,4 +38,13 @@ describe "Reduceable" do
       answer.should eql(value['value']), "Number of #{id}s calculated. Expected #{value['value']} got #{answer}"
     end  
   end
+  it "should be able to average" do
+    values = Sale.average_of(:sale_amount,:tags).to_a
+    answers = average_answers
+    values.each do |value|
+      id = value['_id']
+      answer = answers[id]
+      answer.should eql(value['value']), "Number of #{id}s calculated. Expected #{value['value']} got #{answer}"
+    end  
+  end
 end

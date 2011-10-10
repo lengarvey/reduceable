@@ -18,6 +18,9 @@ module Helpers
   def sum_answers
     {'book'=>200.0, 'fiction'=>80.0, 'music'=>82.0, 'fantasy'=>80.0, 'non-fiction'=>40.0, 'rock'=>20.5, 'pop'=>20.5, 'classical'=>20.5, 'alternative'=>20.5}
   end
+  def average_answers
+    {'book'=>40.0, 'fiction'=>40.0, 'music'=>20.5, 'fantasy'=>40.0, 'non-fiction'=>40.0, 'rock'=>20.5, 'pop'=>20.5, 'classical'=>20.5, 'alternative'=>20.5}
+  end
   def load_data 
     # add some data
     Sale.create(:date => Date.today, :tags => ['book', 'fiction'], :sale_amount => 40)
